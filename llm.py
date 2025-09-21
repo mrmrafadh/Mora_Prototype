@@ -24,14 +24,6 @@ session_id = get_session_id()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 llm = ChatGroq(model="qwen-qwq-32b", temperature=0)
 llm1 = ChatGroq(model="deepseek-r1-distill-llama-70b", temperature=0)
-# llm2 = ChatOpenAI(
-#     model="deepseek/deepseek-chat:free",  # Specify DeepSeek model
-#     # model="deepseek/deepseek-chat-v3-0324:free",
-#     openai_api_base="https://openrouter.ai/api/v1",  # OpenRouter API base
-#     openai_api_key="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",  # Replace with your OpenRouter API key
-#     temperature=0,
-#     response_format={ "type": "json_object" }
-# )
 llm3 = Groq(api_key=GROQ_API_KEY)
 llm4 = ChatGroq(model="llama3-70b-8192", temperature=0, response_format={"type": "json_object"})
 llm5 = ChatGroq(model="deepseek-r1-distill-llama-70b", temperature=0.5,
