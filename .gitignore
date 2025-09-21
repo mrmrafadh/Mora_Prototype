@@ -1,0 +1,26 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ---- Virtual environments ----
+.venv/
+venv/
+env/
+
+# ---- Environment / secret files ----
+.env
+*.key
+*.pem
+
+# ---- OS files ----
+.DS_Store
+Thumbs.db
+
+# ---- IDEs / Editors ----
+.vscode/
+.idea/
+
+# ---- Logs / temp ----
+*.log
+*.tmp
