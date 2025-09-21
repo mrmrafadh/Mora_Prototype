@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Chatbot</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .chat-container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+        }
+        .message-box {
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            max-width: 80%;
+        }
+        .user-message { background-color: #0084ff; color: white; text-align: right; }
+        .bot-message { background-color: #f0f0f0; color: black; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-3">🤖 AI Chatbot</h1>
+        <div id="chat" class="chat-container"></div>
+        <input type="text" id="userInput" class="form-control my-2" placeholder="Type your message...">
+        <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let userInput = document.getElementById("userInput").value;
+            document.getElementById("chat").innerHTML += `<div class="message-box user-message">${userInput}</div>`;
+            document.getElementById("userInput").value = "";
+            
+            fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.type === "table") {
+                    let tableHTML = "<table class='table'><thead><tr>";
+                    for (let col in data.data[0]) tableHTML += `<th>${col}</th>`;
+                    tableHTML += "</tr></thead><tbody>";
+                    data.data.forEach(row => {
+                        tableHTML += "<tr>";
+                        for (let val in row) tableHTML += `<td>${row[val]}</td>`;
+                        tableHTML += "</tr>";
+                    });
+                    tableHTML += "</tbody></table>";
+                    document.getElementById("chat").innerHTML += `<div class="message-box bot-message">${tableHTML}</div>`;
+                } else {
+                    document.getElementById("chat").innerHTML += `<div class="message-box bot-message">${data.data}</div>`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+        background: linear-gradient(135deg, #f1f4c5, #b1f40a46); /* Dark blue to red gradient */
+        color: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .header-logo {
+        height: 60px;  /* Larger logo size */
+        width: auto;
+        max-width: 120px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+        .header h1 {
+        font-size: 2.2em;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        margin: 0;
+    }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-bubble {
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .user-bubble {
+            background-color: #0084ff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+
+        .assistant-bubble {
+            background-color: #f0f0f0;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+        }
+
+        /* Restaurant display styles */
+        .all-restaurants-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .restaurant-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .restaurant-header {
+            background-color: #f8f9fa;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .restaurant-name {
+            font-weight: 600;
+            color: #2563eb;
+            font-size: 1.2em;
+        }
+
+        .restaurant-status {
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 0.5px;
+        }
+
+        .restaurant-status.open {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .restaurant-status.closed {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        .menu-items-container {
+            background-color: white;
+        }
+
+        .menu-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .item-price {
+            color: #2563eb;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .item-availability {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .availability-dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .available {
+            background-color: #16a34a;
+        }
+
+        .not-available {
+            background-color: #dc2626;
+        }
+
+        .item-time {
+            font-size: 0.85em;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Styles for the new restaurant menu link */
+        .restaurant-menu-link {
+            color: #007bff; /* Standard link blue */
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1em; /* Adjust as needed */
+        }
+        .restaurant-menu-link:hover {
+            text-decoration: underline;
+        }
+        .restaurant-menu-link-unavailable {
+            color: #6c757d; /* A muted color */
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+
+        /* Table styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Input area */
+        .input-container {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .message-input:focus {
+            border-color: #0084ff;
+        }
+
+        .send-button {
+            padding: 15px 25px;
+            background: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            min-width: 80px;
+        }
+
+        .send-button:hover {
+            background: #0066cc;
+        }
+
+
+
+        .item-details {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.item-details:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Loading animation */
+        .waveform-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding: 20px 0;
+        }
+
+        .waveform {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            height: 60px;
+            filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.6));
+        }
+
+        .waveform-bar {
+            width: 8px;
+            background: linear-gradient(180deg, #5a4de8, #3b82f6);
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: moveUpDown 1.6s infinite ease-in-out;
+            transform-origin: center;
+            box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+        }
+
+        .waveform-bar:nth-child(1) { animation-delay: 0s; }
+        .waveform-bar:nth-child(2) { animation-delay: 0.15s; }
+        .waveform-bar:nth-child(3) { animation-delay: 0.3s; }
+        .waveform-bar:nth-child(4) { animation-delay: 0.45s; }
+        .waveform-bar:nth-child(5) { animation-delay: 0.6s; }
+        .waveform-bar:nth-child(6) { animation-delay: 0.75s; }
+        .waveform-bar:nth-child(7) { animation-delay: 0.9s; }
+        .waveform-bar:nth-child(8) { animation-delay: 1.05s; }
+
+        @keyframes moveUpDown {
+            0%, 100% {
+                height: 8px;
+                border-radius: 50%;
+                transform: translateY(0);
+                opacity: 0.6;
+                box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+            }
+            25% {
+                height: 40px;
+                border-radius: 12px;
+                transform: translateY(-20px);
+                opacity: 1;
+                box-shadow: 0 0 12px rgba(59, 130, 246, 0.6), inset 0 0 8px rgba(59, 130, 246, 0.6);
+            }
+            50% {
+                height: 24px;
+                border-radius: 10px;
+                transform: translateY(10px);
+                opacity: 0.9;
+                box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), inset 0 0 6px rgba(59, 130, 246, 0.6);
+            }
+            75% {
+                height: 40px;
+                border-radius: 12px;
+                transform: translateY(-20px);
+                opacity: 1;
+                box-shadow: 0 0 12px rgba(59, 130, 246, 0.6), inset 0 0 8px rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        /* Mobile responsivity */
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .chat-container {
+                padding: 10px;
+            }
+
+            .messages-container {
+                padding: 15px;
+                gap: 12px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+
+            /* Mobile-optimized restaurant display */
+            .all-restaurants-container {
+                gap: 15px;
+                max-width: 100%;
+            }
+
+            .restaurant-container {
+                border-radius: 8px;
+                box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+            }
+
+            .restaurant-header {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .restaurant-name {
+                font-size: 1.1em;
+                line-height: 1.3;
+            }
+
+            .restaurant-status {
+                align-self: flex-end;
+                font-size: 0.75em;
+                padding: 3px 10px;
+            }
+
+            .menu-item {
+                padding: 12px 15px;
+            }
+
+            .item-name {
+                font-size: 0.95em;
+                margin-bottom: 6px;
+                line-height: 1.3;
+            }
+
+            .item-details {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                margin-bottom: 6px;
+            }
+
+            .item-price {
+                font-size: 1em;
+                order: 1;
+            }
+
+            .item-availability {
+                font-size: 0.85em;
+                order: 2;
+            }
+
+            .availability-dot {
+                height: 10px;
+                width: 10px;
+            }
+
+            .item-time {
+                font-size: 0.8em;
+                margin-top: 4px;
+            }
+
+            /* Mobile table styles */
+            .data-table {
+                font-size: 12px;
+                border-radius: 6px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 6px;
+                word-break: break-word;
+            }
+
+            .data-table th {
+                font-size: 0.75em;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            /* Mobile input area */
+            .input-container {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .message-input {
+                padding: 12px 16px;
+                font-size: 16px; /* Prevent zoom on iOS */
+                border-radius: 20px;
+            }
+
+            .send-button {
+                padding: 12px 16px;
+                font-size: 14px;
+                min-width: 60px;
+                border-radius: 20px;
+            }
+
+            /* Mobile loading animation */
+            .waveform-container {
+                padding: 15px 0;
+            }
+
+            .waveform {
+                height: 40px;
+                gap: 6px;
+            }
+
+            .waveform-bar {
+                width: 6px;
+            }
+
+            @keyframes moveUpDown { /* Mobile keyframes are already defined, this is a duplicate. Keeping the last one. */
+                0%, 100% {
+                    height: 6px;
+                    border-radius: 50%;
+                    transform: translateY(0);
+                    opacity: 0.6;
+                }
+                25% {
+                    height: 30px;
+                    border-radius: 10px;
+                    transform: translateY(-15px);
+                    opacity: 1;
+                }
+                50% {
+                    height: 18px;
+                    border-radius: 8px;
+                    transform: translateY(8px);
+                    opacity: 0.9;
+                }
+                75% {
+                    height: 30px;
+                    border-radius: 10px;
+                    transform: translateY(-15px);
+                    opacity: 1;
+                }
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .restaurant-header {
+                padding: 10px 12px;
+            }
+
+            .restaurant-name {
+                font-size: 1em;
+            }
+
+            .restaurant-status {
+                font-size: 0.7em;
+                padding: 2px 8px;
+            }
+
+            .menu-item {
+                padding: 10px 12px;
+            }
+
+            .item-name {
+                font-size: 0.9em;
+            }
+
+            .item-price {
+                font-size: 0.95em;
+            }
+
+            .item-availability {
+                font-size: 0.8em;
+            }
+
+            .item-time {
+                font-size: 0.75em;
+            }
+
+            .data-table {
+                font-size: 11px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 6px 4px;
+            }
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1e1e1e;
+                color: #f1f1f1;
+            }
+
+            .messages-container {
+                background-color: #2a2a2a;
+            }
+
+            .assistant-bubble {
+                background-color: #333;
+                color: #ddd;
+            }
+
+            .restaurant-container {
+                border: 1px solid #444;
+                background-color: #2a2a2a;
+                box-shadow: 0 2px 8px rgba(255,255,255,0.08);
+            }
+
+            .restaurant-header {
+                background-color: #333;
+                border-bottom: 1px solid #555;
+            }
+
+            .restaurant-name {
+                color: #4dabf7;
+            }
+            
+            .restaurant-menu-link {
+                color: #4dabf7; /* Lighter blue for dark mode */
+            }
+            .restaurant-menu-link-unavailable {
+                color: #888;
+            }
+
+
+            .menu-items-container {
+                background-color: #2a2a2a;
+            }
+
+            .menu-item {
+                border-bottom: 1px solid #444;
+            }
+
+            .item-name {
+                color: #f1f1f1;
+            }
+
+            .item-time {
+                color: #ccc;
+            }
+
+            .item-price {
+                color: #4dabf7;
+            }
+
+            .input-container {
+                background-color: #2a2a2a;
+            }
+
+            .message-input {
+                background-color: #333;
+                border-color: #555;
+                color: #f1f1f1;
+            }
+
+            .message-input:focus {
+                border-color: #4dabf7;
+            }
+
+            .data-table {
+                background-color: #2a2a2a;
+            }
+
+            .data-table th {
+                background-color: #333;
+                color: #f1f1f1;
+            }
+
+            .data-table td {
+                color: #ddd;
+                border-bottom-color: #444;
+            }
+
+            .data-table tr:hover {
+                background-color: #333;
+            }
+        }
+        .logo-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .logo-image {
+        width: 150px;
+        height: 150px;
+        margin-bottom: 20px;
+    }
+    
+    .logo-text {
+        font-size: 1.2em;
+        color: #666;
+        margin-top: 10px;
+    }
+    /* Add these styles to your existing CSS */
+    .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px; /* Reduced gap */
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 0px; /* Reduced padding */
+    }
+
+    .header-logo {
+        height: 80px;   /* Fixed height */
+        width: auto;    /* Maintain aspect ratio */
+        max-width: 100px; /* Maximum width */
+        object-fit: contain;
+    }
+
+    /* Mobile responsiveness */
+        @media (max-width: 768px) {
+        .header-content {
+            gap: 15px;
+        }
+        .header-logo {
+            height: 50px;
+            max-width: 100px;
+        }
+        .header h1 {
+            font-size: 1.8em;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header {
+            padding: 12px 0;
+        }
+        .header-logo {
+            height: 60px; /* Adjusted for very small screens */
+            max-width: 80px;
+        }
+        .header h1 {
+            font-size: 1.5em;
+        }
+    }
+
+    /* Dark mode adjustments */
+    @media (prefers-color-scheme: dark) {
+        .header {
+            /* background: linear-gradient(135deg, #3a3a3a, #1e1e1e); Darker gradient for dark mode */
+            background: linear-gradient(135deg, #fdffcf, #dbf131);
+        }
+        .header-logo {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)) 
+                    brightness(1.1); /* Slightly brighten logo in dark mode */
+        }
+        .logo-text { /* Dark mode for initial logo text */
+             color: #bbb;
+        }
+    }
+    .category-chip {
+    background-color: #e0f7fa;
+    border-radius: 12px;
+    padding: 4px 8px;
+    margin: 2px;
+    display: inline-block;
+    font-size: 12px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="header">
+    <div class="header-content">
+        <img src="/static/logo.png" alt="Chatbot Logo" class="header-logo" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+        <div class="chat-container">
+        <div id="logoContainer" class="logo-container">
+            <img src="/static/logo.png" alt="Assistant Logo" class="logo-image" onerror="this.style.display='none'">
+            <p class="logo-text">How can I help you today?</p>
+        </div>
+
+        <div class="messages-container" id="messagesContainer" style="display: none;">
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.role == 'user' %}
+                        <div class="message-bubble user-bubble">
+                            {{ message.content }}
+                        </div>
+                    {% else %}
+                        <div class="message-bubble assistant-bubble">
+                            {{ message.content }} </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="input-container">
+            <input 
+                type="text" 
+                id="messageInput" 
+                class="message-input" 
+                placeholder="Type your message..." 
+                autocomplete="off"
+            />
+            <button id="sendButton" class="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const logoContainer = document.getElementById('logoContainer');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // If there are existing messages (e.g., from server-side rendering), hide logo and show messages
+            // This check needs to be robust. If Jinja renders actual message elements, children.length > 0 is fine.
+            // If it only renders a script or comments, this might not work as expected.
+            // A safer check might be if messagesContainer.querySelector('.message-bubble') exists.
+            if (messagesContainer.querySelector('.message-bubble')) {
+                logoContainer.style.display = 'none';
+                messagesContainer.style.display = 'flex';
+                scrollToBottom();
+            }
+        });
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addMessage(content, role, type = 'text') {
+            const messageDiv = document.createElement('div');
+            
+            if (role === 'user') {
+                messageDiv.className = 'message-bubble user-bubble';
+                messageDiv.textContent = content;
+                messagesContainer.appendChild(messageDiv);
+            } else { // Assistant messages
+                if (type === 'restaurant_data') {
+                    // Original restaurant display
+                    createRestaurantDisplay(content);
+                } else if (type === 'restaurant_data1') {
+                    // New restaurant display with menu link, timings etc.
+                    createRestaurantDisplay1(content); 
+                } else if (type === 'table_data') {
+                    // Create table display
+                    createTableDisplay(content);
+                } else {
+                    // Default assistant text bubble
+                    messageDiv.className = 'message-bubble assistant-bubble';
+                    // Check if content is HTML or plain text (basic check)
+                    if (typeof content === 'string' && content.startsWith('<') && content.endsWith('>')) {
+                        messageDiv.innerHTML = content;
+                    } else {
+                        const formattedContent = content.replace(/\n/g, '<br>');
+                        messageDiv.innerHTML = formattedContent;
+                    }
+                    messagesContainer.appendChild(messageDiv);
+                }
+            }
+            
+            scrollToBottom();
+        }
+
+        function createRestaurantDisplay(restaurants) {
+            // This is the original function provided by the user.
+            // It populates restaurant data with items, price, availability.
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-bubble assistant-bubble all-restaurants-container';
+            
+            if (Array.isArray(restaurants)) {
+                restaurants.forEach(restaurant => {
+                    wrapper.appendChild(createSingleRestaurant(restaurant));
+                });
+            } else if (typeof restaurants === 'object' && restaurants !== null) {
+                for (const [restaurantName, data] of Object.entries(restaurants)) {
+                    wrapper.appendChild(createSingleRestaurant({
+                        name: restaurantName,
+                        ...data
+                    }));
+                }
+            } else {
+                 const noDataDiv = document.createElement('div');
+                 noDataDiv.className = 'restaurant-container';
+                 noDataDiv.textContent = 'No restaurant data available for this view.';
+                 wrapper.appendChild(noDataDiv);
+            }
+            
+            messagesContainer.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        function createSingleRestaurant(restaurant) {
+    const restaurantDiv = document.createElement('div');
+    restaurantDiv.className = 'restaurant-container';
+
+    const statusClass = restaurant.status && restaurant.status.toLowerCase().includes('open') ? 'open' : 'closed';
+    const statusText = restaurant.status || 'Status unknown';
+
+    // Create restaurant header
+    let restaurantHTML = `
+        <div class="restaurant-header">
+            <div class="restaurant-name">${restaurant.name || 'Unnamed Restaurant'}</div>
+            <div class="restaurant-status ${statusClass}">${statusText}</div>
+        </div>
+        <div class="menu-items-container">
+    `;
+
+    // Process variants if they exist
+    if (restaurant.variants && typeof restaurant.variants === 'object') {
+        for (const [variantName, sizes] of Object.entries(restaurant.variants)) {
+            if (typeof sizes === 'object' && sizes !== null) {
+                // Start a new menu item for each variant
+                restaurantHTML += `
+                    <div class="menu-item">
+                        <div class="item-name">${restaurant.dish} ${variantName}</div>
+                `;
+
+                // Add all sizes for this variant
+                for (const [sizeName, sizeDetails] of Object.entries(sizes)) {
+                    if (typeof sizeDetails === 'object' && sizeDetails !== null) {
+                        restaurantHTML += `
+                            <div class="item-details">
+                                <div style="display: flex; justify-content: space-between; width: 100%;">
+                                    <span>${sizeName}</span>
+                                    <span class="item-price">Rs. ${sizeDetails.Price || sizeDetails.price || 'N/A'}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 8px;">
+                                    <span class="item-availability">
+                                        <span class="availability-dot ${(sizeDetails.Availability || sizeDetails.availability || '').toLowerCase().includes('available') ? 'available' : 'not-available'}"></span>
+                                        ${sizeDetails.Availability || sizeDetails.availability || 'Availability unknown'}
+                                    </span>
+                                    ${sizeDetails['Available Time'] || sizeDetails.time ? `
+                                    <div class="item-time">
+                                        <span>⏰</span> ${sizeDetails['Available Time'] || sizeDetails.time}
+                                    </div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                restaurantHTML += `</div>`; // Close menu-item div
+            }
+        }
+    } else {
+        restaurantHTML += '<div class="menu-item"><p>No menu items available for this view.</p></div>';
+    }
+
+    restaurantHTML += `</div>`; // Close menu-items-container
+    restaurantDiv.innerHTML = restaurantHTML;
+    return restaurantDiv;
+}
+
+        // NEW FUNCTION: createRestaurantDisplay1
+        // Handles the overall container for the new restaurant display type
+       
+      function createRestaurantDisplay1(dataInput) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'message-bubble assistant-bubble all-restaurants-container';
+
+    // Handle case: input is JSON string
+    if (typeof dataInput === 'string') {
+        try {
+            dataInput = JSON.parse(dataInput);
+        } catch (err) {
+            return showRestaurantError(wrapper, "Failed to parse restaurant data.");
+        }
+    }
+
+    // If it's an array, loop and create a card for each
+    if (Array.isArray(dataInput)) {
+        if (dataInput.length === 0) {
+            return showRestaurantError(wrapper, "No restaurant data available.");
+        }
+        dataInput.forEach(restaurant => {
+            if (typeof restaurant === 'object' && restaurant !== null) {
+                wrapper.appendChild(createSingleRestaurantWithLink(restaurant));
+            }
+        });
+    }
+    // If it's a single object
+    else if (typeof dataInput === 'object' && dataInput !== null) {
+        wrapper.appendChild(createSingleRestaurantWithLink(dataInput));
+    } else {
+        return showRestaurantError(wrapper, "Invalid restaurant data format.");
+    }
+
+    messagesContainer.appendChild(wrapper);
+    scrollToBottom();
+}
+
+function showError(wrapper, message) {
+    const noDataDiv = document.createElement('div');
+    noDataDiv.className = 'restaurant-container';
+    noDataDiv.style.padding = '15px';
+    noDataDiv.textContent = message;
+    wrapper.appendChild(noDataDiv);
+    messagesContainer.appendChild(wrapper);
+    scrollToBottom();
+}
+
+
+
+// Helper to build the restaurant card
+function createSingleRestaurantWithLink(restaurant) {
+    const restaurantDiv = document.createElement('div');
+    restaurantDiv.className = 'restaurant-container';
+
+    const restaurantName = restaurant.name ?? 'Unnamed Restaurant';
+    const timings = restaurant.timings ?? 'Timings not available';
+    const status = restaurant.status ?? 'Status unknown';
+    const statusClass = typeof status === 'string' && status.toLowerCase().includes('open') ? 'Open' : 'Closed';
+
+    let menuLinkHTML = `<span class="restaurant-menu-link-unavailable">Menu link not available</span>`;
+    if (typeof restaurant.menuLink === 'string' && restaurant.menuLink.trim() !== '' && restaurant.menuLink.trim() !== '#') {
+        menuLinkHTML = `<a href="${restaurant.menuLink}" target="_blank" rel="noopener noreferrer" class="restaurant-menu-link">View Menu</a>`;
+    }
+
+    // Handle categories
+    let categoriesHTML = `<span>No categories listed</span>`;
+    if (Array.isArray(restaurant.categories) && restaurant.categories.length > 0) {
+        categoriesHTML = restaurant.categories.map(cat => `<span class="category-chip">${cat}</span>`).join(', ');
+    }
+
+    restaurantDiv.innerHTML = `
+        <div class="restaurant-header">
+            <div class="restaurant-name">${restaurantName}</div>
+            <div class="restaurant-status ${statusClass}">${status}</div>
+        </div>
+        <div class="menu-items-container">
+            <div class="menu-item">
+                <div class="item-name">Timings</div>
+                <div class="item-details" style="justify-content: flex-start;">
+                    <span>${timings}</span>
+                </div>
+            </div>
+            <div class="menu-item">
+                <div class="item-name">Menu</div>
+                <div class="item-details" style="justify-content: flex-start;">
+                    ${menuLinkHTML}
+                </div>
+            </div>
+            <div class="menu-item">
+                <div class="item-name">Categories Served</div>
+                <div class="item-details" style="justify-content: flex-start;">
+                    ${categoriesHTML}
+                </div>
+            </div>
+        </div>
+    `;
+    return restaurantDiv;
+}
+
+
+
+        function createTableDisplay(data) {
+            // This is the original function provided by the user.
+            if (!data || (Array.isArray(data) && data.length === 0)) {
+                addMessage("No table data available", 'assistant');
+                return;
+            }
+
+            if (!Array.isArray(data)) {
+                data = [data]; // Ensure data is an array for processing
+            }
+            
+            // Additional check: if the array is still empty or first item is not an object
+            if (data.length === 0 || typeof data[0] !== 'object' || data[0] === null) {
+                addMessage("Table data is not in the expected format.", 'assistant');
+                return;
+            }
+
+
+            const tableWrapper = document.createElement('div');
+            tableWrapper.className = 'message-bubble assistant-bubble'; // Table itself will be styled
+            
+            const table = document.createElement('table');
+            table.className = 'data-table';
+
+            const headerRow = document.createElement('tr');
+            const firstItem = data[0]; // Assuming all objects have the same keys
+            Object.keys(firstItem).forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                Object.keys(firstItem).forEach(key => { // Iterate based on header keys for consistency
+                    const td = document.createElement('td');
+                    const value = row[key];
+                    if (typeof value === 'object' && value !== null) {
+                        td.textContent = JSON.stringify(value); // Simple stringify for nested objects
+                    } else {
+                        td.textContent = value !== undefined && value !== null ? value : 'N/A';
+                    }
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+
+            tableWrapper.appendChild(table);
+            messagesContainer.appendChild(tableWrapper);
+            scrollToBottom();
+        }
+
+        function showLoadingAnimation() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingAnimation'; // Used to find and remove it
+            loadingDiv.className = 'message-bubble assistant-bubble'; // So it aligns like other assistant messages
+            loadingDiv.style.background = 'transparent'; // Make bubble background transparent
+            loadingDiv.style.padding = '0'; // Remove padding for the bubble itself
+            loadingDiv.innerHTML = `
+                <div class="waveform-container">
+                    <div class="waveform">
+                        ${Array(8).fill('<div class="waveform-bar"></div>').join('')}
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(loadingDiv);
+            scrollToBottom();
+        }
+
+        function hideLoadingAnimation() {
+            const loadingDiv = document.getElementById('loadingAnimation');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Hide logo and show messages container if it's the first message
+            if (logoContainer.style.display !== 'none') {
+                logoContainer.style.display = 'none';
+                messagesContainer.style.display = 'flex';
+            }
+            
+            addMessage(message, 'user');
+
+            messageInput.value = '';
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...'; // Visual feedback
+
+            showLoadingAnimation();
+
+            try {
+                // Simulating API call
+                const response = await fetch('/send_message', { // Ensure this endpoint exists on your server
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                hideLoadingAnimation(); // Hide loading before processing response
+
+                if (!response.ok) {
+                    // Try to get error message from server response body
+                    let errorData;
+                    try {
+                        errorData = await response.json();
+                    } catch (e) {
+                        // If response is not JSON or empty
+                        errorData = { error: `Server responded with status: ${response.status}` };
+                    }
+                    addMessage(`Error: ${errorData.error || response.statusText || 'Failed to send message'}`, 'assistant');
+                } else {
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        addMessage(`Error: ${data.error}`, 'assistant');
+                    } else if (data.messages && Array.isArray(data.messages)) { // Check if messages is an array
+                        data.messages.forEach(msg => {
+                            // Ensure msg.content and msg.role are present
+                            if (msg.content !== undefined && msg.role) {
+                                addMessage(msg.content, msg.role, msg.type);
+                            } else {
+                                console.error("Received malformed message object: ", msg);
+                                addMessage("Received incomplete message from server.", "assistant");
+                            }
+                        });
+                    } else if (data.response) { 
+                        addMessage(data.response, 'assistant');
+                    } else {
+                        // Handle cases where the response format is unexpected
+                        addMessage("Received an unexpected response from the server.", 'assistant');
+                        console.error("Unexpected server response format:", data);
+                    }
+                }
+
+            } catch (error) {
+                hideLoadingAnimation();
+                console.error('SendMessage Error:', error); // Log the actual error
+                addMessage(`Network or client-side error: ${error.message}`, 'assistant');
+            }
+
+            sendButton.disabled = false;
+            sendButton.textContent = 'Send';
+            messageInput.focus(); // Return focus to input
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter, allow Shift+Enter for newline if textarea
+                e.preventDefault(); // Prevent default newline in input
+                sendMessage();
+            }
+        });
+        
+
+        // Focus input on load
+        messageInput.focus();
+    </script>
+</body>
+</html>
