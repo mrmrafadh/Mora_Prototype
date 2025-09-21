@@ -26,7 +26,10 @@ llm = ChatGroq(model="qwen-qwq-32b", temperature=0)
 llm1 = ChatGroq(model="deepseek-r1-distill-llama-70b", temperature=0)
 llm3 = Groq(api_key=GROQ_API_KEY)
 llm4 = ChatGroq(model="llama3-70b-8192", temperature=0, response_format={"type": "json_object"})
-llm5 = ChatGroq(model="deepseek-r1-distill-llama-70b", temperature=0.5,
+# llm5 = ChatGroq(model="deepseek-r1-distill-llama-70b", temperature=0.5,
+#     response_format={"type": "json_object"},
+#     )
+llm5 = ChatGroq(model="openai/gpt-oss-120b", temperature=0.5,
     response_format={"type": "json_object"},
     )
 
