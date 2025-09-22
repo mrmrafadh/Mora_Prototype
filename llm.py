@@ -22,7 +22,7 @@ import os
 session_id = get_session_id()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-llm = ChatGroq(model="qwen-qwq-32b", temperature=0)
+llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
 llm1 = ChatGroq(model="deepseek-r1-distill-llama-70b", temperature=0)
 llm3 = Groq(api_key=GROQ_API_KEY)
 llm4 = ChatGroq(model="llama3-70b-8192", temperature=0, response_format={"type": "json_object"})
