@@ -9,7 +9,7 @@ import json
 
 session_id = get_session_id() 
 
-db_url = "mysql+mysqlconnector://root:root@localhost:3306/foodstation"
+db_url = f"postgresql+psycopg2://postgres:rootroot@moradb.c38maw0agkjw.ap-south-1.rds.amazonaws.com:5432/foodstation"
 
 few_shot_examples="""
                 {
