@@ -7,6 +7,8 @@ __pycache__/
 .venv/
 venv/
 env/
+chat_history_foodstation.db
+
 
 # ---- Environment / secret files ----
 .env
