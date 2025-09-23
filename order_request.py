@@ -1,77 +1,75 @@
-import mysql.connector  # To connect to the MySQL database
-import json  # To handle JSON data
-import sys  # For system-related operations
-import llm_order  # A module that provides the llm_order function
-from flask import session  # To store temporary user data during a session
-import chat_history  # To log user interactions
-from session_manager import get_session_id  # To get a unique session ID
+import json
+import sys
+import llm_order
+from flask import session
+import chat_history
+from session_manager import get_session_id
+from db_config import db_conn   # Make sure db_conn() now returns a psycopg2 connection
+from psycopg2 import sql, Error
+from psycopg2.extras import RealDictCursor
 
-# Get the session ID for tracking user interactions
 session_id = get_session_id()
 
 def dish_info(dish, restaurant_name, dish_selected=None):
     """
-    Fetches dish details (like name, variant, size, price) from the database for a given dish and restaurant.
-    
+    Fetches dish details (name, variant, size, price) from the PostgreSQL database.
+
     Args:
-        dish: The name of the dish (e.g., "Pizza")
-        restaurant_name: The name of the restaurant (e.g., "Pizza Hut")
-        dish_selected: If a specific dish is already chosen, use this to narrow the search
-    
+        dish: Name of the dish (e.g., "Pizza")
+        restaurant_name: Name of the restaurant (e.g., "Pizza Hut")
+        dish_selected: Optional specific dish name to narrow search
+
     Returns:
-        result_dict: A dictionary of dish details (id, name, variant, size, price)
-        variants: A set of available variants (e.g., {"spicy", "regular"})
-        sizes: A set of available sizes (e.g., {"small", "large"})
-        dish_options: A set of possible dish names (e.g., {"margherita", "pepperoni"})
-        OR
-        error message if dish not found
+        result_dict: {id: {dish, variant, size, price}}
+        variants: set of variants
+        sizes: set of sizes
+        dish_options: set of possible dish names
+        or
+        error dict if not found
     """
+    cnx = None
+    cursor = None
     try:
-        # Connect to the MySQL database
-        cnx = mysql.connector.connect(user='root', password='root',
-                                      host='127.0.0.1', database='foodstation')
-        cursor = cnx.cursor(dictionary=True)  # Return results as dictionaries
+        # Connect to PostgreSQL
+        cnx = db_conn()
+        cursor = cnx.cursor(cursor_factory=RealDictCursor)
 
-        # Base query to find dishes in a restaurant
-        query = """SELECT fi.id, fi.food_name, fi.variant, fi.size, fi.price
-                   FROM food_items fi
-                   JOIN restaurants r ON fi.restaurant_id = r.restaurant_id
-                   WHERE r.name = %s"""
-        
-        # If searching for a specific dish, add it to the query
-        search_dish_name = query + " AND fi.food_name = %s"
-        cursor.execute(search_dish_name, (restaurant_name, dish))
-        results = cursor.fetchall()  # Get all matching rows
+        # Base query
+        base_query = """
+            SELECT fi.id, fi.food_name, fi.variant, fi.size, fi.price
+            FROM food_items fi
+            JOIN restaurants r ON fi.restaurant_id = r.restaurant_id
+            WHERE r.name = %s
+        """
 
-        # If no results, try a broader search
+        # Search for exact dish name first
+        search_query = base_query + " AND fi.food_name = %s"
+        cursor.execute(search_query, (restaurant_name, dish))
+        results = cursor.fetchall()
+
+        # If no exact match, broaden the search
         if not results:
             if dish_selected:
-                # If a dish is selected, search for it exactly
-                cursor.execute(query + " AND fi.food_name = %s", (restaurant_name, dish))
+                cursor.execute(base_query + " AND fi.food_name = %s", (restaurant_name, dish))
                 results = cursor.fetchall()
             else:
-                # Otherwise, search for dishes containing the dish name (e.g., "Pizza" matches "Margherita Pizza")
-                cursor.execute(query + " AND fi.food_name LIKE %s", (restaurant_name, f'%{dish}%'))
+                cursor.execute(base_query + " AND fi.food_name ILIKE %s", (restaurant_name, f'%{dish}%'))
                 results = cursor.fetchall()
 
-        # If still no results, return an error
         if not results:
-            return {"status": "error", "message": f"Dish '{dish}' not found in {restaurant_name}"}, set(), set(), set()
+            return {"status": "error",
+                    "message": f"Dish '{dish}' not found in {restaurant_name}"}, set(), set(), set()
 
-        # Initialize empty containers for results
-        result_dict = {}  # Store dish details
-        variants = set()  # Store unique variants
-        sizes = set()     # Store unique sizes
-        dish_options = set()  # Store unique dish names
+        result_dict = {}
+        variants = set()
+        sizes = set()
+        dish_options = set()
 
-        # Process each row from the database
         for row in results:
-            # Clean up variant and size (convert to lowercase, remove spaces)
             variant = row["variant"].lower().strip() if row["variant"] else None
             size = row["size"].lower().strip() if row["size"] else None
-            dish_options.add(row["food_name"].lower().strip())  # Add dish name to options
-            
-            # Store dish details in result_dict using the food item ID as the key
+            dish_options.add(row["food_name"].lower().strip())
+
             result_dict[row["id"]] = {
                 "dish": row["food_name"],
                 "variant": variant,
@@ -79,21 +77,22 @@ def dish_info(dish, restaurant_name, dish_selected=None):
                 "price": row["price"]
             }
             if variant:
-                variants.add(variant)  # Add variant to the set
+                variants.add(variant)
             if size:
-                sizes.add(size)  # Add size to the set
+                sizes.add(size)
 
         return result_dict, variants, sizes, dish_options
 
-    except mysql.connector.Error as err:
-        # Handle database errors
+    except Error as err:
         print(f"Database Error: {err}")
         return {"status": "error", "message": f"Database error: {err}"}, set(), set(), set()
 
     finally:
-        # Always close the database connection
-        cursor.close()
-        cnx.close()
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
+
 
 def normalize(value):
     """

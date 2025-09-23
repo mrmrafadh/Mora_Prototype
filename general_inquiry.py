@@ -5,11 +5,14 @@ import chat_history
 import pandas as pd
 from session_manager import get_session_id
 import json
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 session_id = get_session_id() 
 
-db_url = f"postgresql+psycopg2://postgres:rootroot@moradb.c38maw0agkjw.ap-south-1.rds.amazonaws.com:5432/foodstation"
+db_url = os.getenv("postgres_creds")
+
 
 few_shot_examples="""
                 {
