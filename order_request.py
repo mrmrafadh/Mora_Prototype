@@ -552,7 +552,7 @@ def handle_user_selection_response(user_choice):
         # Clear session if order is complete or there's an error
         if result.get('status') in ['complete', 'error']:
             clear_selection_session()
-        
+        print(result)
         return result
         
     except Exception as e:
